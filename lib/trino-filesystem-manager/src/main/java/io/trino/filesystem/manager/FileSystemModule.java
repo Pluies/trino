@@ -22,6 +22,8 @@ import io.opentelemetry.api.trace.Tracer;
 import io.trino.filesystem.TrinoFileSystemFactory;
 import io.trino.filesystem.hdfs.HdfsFileSystemFactory;
 import io.trino.filesystem.hdfs.HdfsFileSystemModule;
+import io.trino.filesystem.hdfs.cache.CachingFileSystemConfig;
+import io.trino.filesystem.hdfs.cache.CachingFileSystemModule;
 import io.trino.filesystem.s3.S3FileSystemFactory;
 import io.trino.filesystem.s3.S3FileSystemModule;
 import io.trino.filesystem.tracing.TracingFileSystemFactory;
@@ -40,11 +42,17 @@ public class FileSystemModule
     protected void setup(Binder binder)
     {
         FileSystemConfig config = buildConfigObject(FileSystemConfig.class);
+        CachingFileSystemConfig cachingFileSystemConfig = buildConfigObject(CachingFileSystemConfig.class);
 
         binder.bind(HdfsFileSystemFactoryHolder.class).in(SINGLETON);
 
         if (config.isHadoopEnabled()) {
-            install(new HdfsFileSystemModule());
+            if (cachingFileSystemConfig.isCacheEnabled()) {
+                install(new CachingFileSystemModule());
+            }
+            else {
+                install(new HdfsFileSystemModule());
+            }
         }
 
         var factories = newMapBinder(binder, String.class, TrinoFileSystemFactory.class);

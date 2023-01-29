@@ -13,9 +13,10 @@
  */
 package io.trino.filesystem.hdfs;
 
+import alluxio.client.file.cache.CacheManager;
+import alluxio.conf.AlluxioConfiguration;
 import com.google.inject.Inject;
 import io.trino.filesystem.TrinoFileSystem;
-import io.trino.filesystem.TrinoFileSystemFactory;
 import io.trino.hdfs.HdfsContext;
 import io.trino.hdfs.HdfsEnvironment;
 import io.trino.hdfs.TrinoHdfsFileSystemStats;
@@ -23,22 +24,24 @@ import io.trino.spi.security.ConnectorIdentity;
 
 import static java.util.Objects.requireNonNull;
 
-public class HdfsFileSystemFactory
-        implements TrinoFileSystemFactory
+public class CachingFileSystemFactory
+        extends HdfsFileSystemFactory
 {
-    protected final HdfsEnvironment environment;
-    protected final TrinoHdfsFileSystemStats fileSystemStats;
+    private final CacheManager cacheManager;
+    private final AlluxioConfiguration alluxioConf;
 
     @Inject
-    public HdfsFileSystemFactory(HdfsEnvironment environment, TrinoHdfsFileSystemStats fileSystemStats)
+    public CachingFileSystemFactory(HdfsEnvironment environment, TrinoHdfsFileSystemStats fileSystemStats,
+            CacheManager cacheManager, AlluxioConfiguration alluxioConf)
     {
-        this.environment = requireNonNull(environment, "environment is null");
-        this.fileSystemStats = requireNonNull(fileSystemStats, "fileSystemStats is null");
+        super(environment, fileSystemStats);
+        this.cacheManager = requireNonNull(cacheManager, "cacheManager is null");
+        this.alluxioConf = requireNonNull(alluxioConf, "alluxioConf is null");
     }
 
     @Override
     public TrinoFileSystem create(ConnectorIdentity identity)
     {
-        return new HdfsFileSystem(environment, new HdfsContext(identity), fileSystemStats);
+        return new CachingHdfsFileSystem(environment, new HdfsContext(identity), fileSystemStats, cacheManager, alluxioConf);
     }
 }
