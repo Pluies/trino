@@ -356,6 +356,13 @@
             <groupId>io.trino.tpch</groupId>
             <artifactId>tpch</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <!-- calcite-core and Iceberg have conflicting versions of org.apache.commons:commons-lang3 -->
+                    <groupId>com.linkedin.calcite</groupId>
+                    <artifactId>calcite-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -405,6 +412,16 @@
                     <ignoredResourcePatterns>
                         <ignoredResourcePattern>iceberg-build.properties</ignoredResourcePattern>
                         <ignoredResourcePattern>mozilla/public-suffix-list.txt</ignoredResourcePattern>
+                    </ignoredResourcePatterns>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.basepom.maven</groupId>
+                <artifactId>duplicate-finder-maven-plugin</artifactId>
+                <configuration>
+                    <ignoredResourcePatterns combine.children="append">
+                        <!-- com.google.protobuf:protobuf-java and org.alluxio:alluxio-shaded-client proto file duplicate -->
+                        <ignoredResourcePattern>google/protobuf/.*\.proto$</ignoredResourcePattern>
                     </ignoredResourcePatterns>
                 </configuration>
             </plugin>

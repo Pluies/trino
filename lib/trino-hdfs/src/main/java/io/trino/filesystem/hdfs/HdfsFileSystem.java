@@ -56,9 +56,9 @@ class HdfsFileSystem
             .put("hdfs", true)
             .buildOrThrow();
 
-    private final HdfsEnvironment environment;
-    private final HdfsContext context;
-    private final TrinoHdfsFileSystemStats stats;
+    protected final HdfsEnvironment environment;
+    protected final HdfsContext context;
+    protected final TrinoHdfsFileSystemStats stats;
 
     private final Map<FileSystem, Boolean> hierarchicalFileSystemCache = new IdentityHashMap<>();
 
