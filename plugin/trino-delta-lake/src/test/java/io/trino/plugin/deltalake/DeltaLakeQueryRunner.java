@@ -177,6 +177,35 @@ public final class DeltaLakeQueryRunner
                 additionalSetup);
     }
 
+    public static DistributedQueryRunner createS3DeltaLakeHadoopQueryRunner(
+            String catalogName,
+            String schemaName,
+            Map<String, String> extraProperties,
+            Map<String, String> coordinatorProperties,
+            Map<String, String> connectorProperties,
+            String minioAddress,
+            HiveHadoop testingHadoop,
+            Consumer<QueryRunner> additionalSetup)
+            throws Exception
+    {
+        return createDockerizedDeltaLakeQueryRunner(
+                catalogName,
+                schemaName,
+                coordinatorProperties,
+                extraProperties,
+                ImmutableMap.<String, String>builder()
+                        .put("hive.s3.aws-access-key", MINIO_ACCESS_KEY)
+                        .put("hive.s3.aws-secret-key", MINIO_SECRET_KEY)
+                        .put("hive.s3.endpoint", minioAddress)
+                        .put("hive.s3.path-style-access", "true")
+                        .put("hive.s3.streaming.part-size", "5MB") //must be at least 5MB according to annotations on io.trino.hdfs.s3.HiveS3Config.getS3StreamingPartSize
+                        .put("hive.metastore-timeout", "1m") // read timed out sometimes happens with the default timeout
+                        .putAll(connectorProperties)
+                        .buildOrThrow(),
+                testingHadoop,
+                additionalSetup);
+    }
+
     public static QueryRunner createAbfsDeltaLakeQueryRunner(
             String catalogName,
             String schemaName,
@@ -298,6 +327,37 @@ public final class DeltaLakeQueryRunner
                     ImmutableMap.of("http-server.http.port", "8080"),
                     ImmutableMap.of(),
                     ImmutableMap.of("delta.enable-non-concurrent-writes", "true"),
+                    hiveMinioDataLake.getMinio().getMinioAddress(),
+                    hiveMinioDataLake.getHiveHadoop(),
+                    runner -> {});
+
+            queryRunner.execute("CREATE SCHEMA tpch WITH (location='s3://" + bucketName + "/tpch')");
+            copyTpchTables(queryRunner, "tpch", TINY_SCHEMA_NAME, createSession(), TpchTable.getTables());
+
+            Thread.sleep(10);
+            Logger log = Logger.get(DeltaLakeQueryRunner.class);
+            log.info("======== SERVER STARTED ========");
+            log.info("\n====\n%s\n====", queryRunner.getCoordinator().getBaseUrl());
+        }
+    }
+
+    public static class CachingS3DeltaLakeQueryRunnerMain
+    {
+        public static void main(String[] args)
+                throws Exception
+        {
+            String bucketName = "test-bucket";
+
+            HiveMinioDataLake hiveMinioDataLake = new HiveMinioDataLake(bucketName);
+            hiveMinioDataLake.start();
+            DistributedQueryRunner queryRunner = createS3DeltaLakeHadoopQueryRunner(
+                    DELTA_CATALOG,
+                    TPCH_SCHEMA,
+                    ImmutableMap.of("http-server.http.port", "8080"),
+                    ImmutableMap.of(),
+                    ImmutableMap.of(
+                            "delta.enable-non-concurrent-writes", "true",
+                            "cache.enabled", "true"),
                     hiveMinioDataLake.getMinio().getMinioAddress(),
                     hiveMinioDataLake.getHiveHadoop(),
                     runner -> {});
