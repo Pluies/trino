@@ -40,12 +40,15 @@ final class S3InputFile
     private Long length;
     private Instant lastModified;
 
-    public S3InputFile(S3Client client, S3Context context, S3Location location, Long length)
+    public S3InputFile(S3Client client, S3Context context, S3Location location, Long length, Long lastModified)
     {
         this.client = requireNonNull(client, "client is null");
         this.location = requireNonNull(location, "location is null");
         this.requestPayer = context.requestPayer();
         this.length = length;
+        if (lastModified != null) {
+            this.lastModified = Instant.ofEpochMilli(lastModified);
+        }
         location.location().verifyValidFileLocation();
     }
 

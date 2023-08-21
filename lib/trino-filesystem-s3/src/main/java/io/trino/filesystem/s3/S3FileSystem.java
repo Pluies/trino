@@ -61,13 +61,19 @@ final class S3FileSystem
     @Override
     public TrinoInputFile newInputFile(Location location)
     {
-        return new S3InputFile(client, context, new S3Location(location), null);
+        return new S3InputFile(client, context, new S3Location(location), null, null);
     }
 
     @Override
     public TrinoInputFile newInputFile(Location location, long length)
     {
-        return new S3InputFile(client, context, new S3Location(location), length);
+        return new S3InputFile(client, context, new S3Location(location), length, null);
+    }
+
+    @Override
+    public TrinoInputFile newInputFile(Location location, long length, long lastModifiedTime)
+    {
+        return new S3InputFile(client, context, new S3Location(location), length, lastModifiedTime);
     }
 
     @Override

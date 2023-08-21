@@ -68,6 +68,15 @@ public interface TrinoFileSystem
     TrinoInputFile newInputFile(Location location, long length);
 
     /**
+     * Creates a TrinoInputFile with a predeclared length and last modified time which can be used to
+     * read the file data. The length and last modified time will not be checked. The file location
+     * path cannot be empty, and must not end with a slash or whitespace.
+     *
+     * @throws IllegalArgumentException if location is not valid for this file system
+     */
+    TrinoInputFile newInputFile(Location location, long fileSize, long fileModifiedTime);
+
+    /**
      * Creates a TrinoOutputFile which can be used to create or overwrite the file. The file
      * location path cannot be empty, and must not end with a slash or whitespace.
      *

@@ -163,6 +163,7 @@ public class DeltaLakeSplit
                 .put("path", path)
                 .put("start", start)
                 .put("length", length)
+                .put("fileModifiedTime", fileModifiedTime)
                 .buildOrThrow();
     }
 
@@ -173,6 +174,7 @@ public class DeltaLakeSplit
                 .add("path", path)
                 .add("start", start)
                 .add("length", length)
+                .add("fileModifiedTime", fileModifiedTime)
                 .add("fileSize", fileSize)
                 .add("rowCount", fileRowCount)
                 .add("statisticsPredicate", statisticsPredicate)

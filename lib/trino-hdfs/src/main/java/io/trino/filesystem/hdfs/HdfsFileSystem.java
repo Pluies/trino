@@ -72,13 +72,19 @@ class HdfsFileSystem
     @Override
     public TrinoInputFile newInputFile(Location location)
     {
-        return new HdfsInputFile(location, null, environment, context, stats.getOpenFileCalls());
+        return new HdfsInputFile(location, null, null, environment, context, stats.getOpenFileCalls());
     }
 
     @Override
     public TrinoInputFile newInputFile(Location location, long length)
     {
-        return new HdfsInputFile(location, length, environment, context, stats.getOpenFileCalls());
+        return new HdfsInputFile(location, length, null, environment, context, stats.getOpenFileCalls());
+    }
+
+    @Override
+    public TrinoInputFile newInputFile(Location location, long length, long lastModifiedTime)
+    {
+        return new HdfsInputFile(location, length, lastModifiedTime, environment, context, stats.getOpenFileCalls());
     }
 
     @Override

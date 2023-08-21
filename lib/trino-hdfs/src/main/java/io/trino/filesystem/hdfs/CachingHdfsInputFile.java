@@ -39,13 +39,12 @@ public class CachingHdfsInputFile
 {
     private final CacheManager cacheManager;
     private final AlluxioConfiguration alluxioConf;
-
     private final FileSystem.Statistics statistics = new FileSystem.Statistics("alluxio");
 
-    public CachingHdfsInputFile(Location location, Long length, HdfsEnvironment environment, HdfsContext context, CallStats callStat,
+    public CachingHdfsInputFile(Location location, Long length, Long lastModifiedTime, HdfsEnvironment environment, HdfsContext context, CallStats callStat,
                                 CacheManager cacheManager, AlluxioConfiguration alluxioConf)
     {
-        super(location, length, environment, context, callStat);
+        super(location, length, lastModifiedTime, environment, context, callStat);
         this.cacheManager = cacheManager;
         this.alluxioConf = alluxioConf;
     }
@@ -56,12 +55,15 @@ public class CachingHdfsInputFile
     {
         FileSystem fileSystem = environment.getFileSystem(context, file);
         FSDataInputStream input = environment.doAs(context.getIdentity(), () -> {
+            String path = file.toString();
+            long lastModifiedTime = lastModified().toEpochMilli();
+
             FileInfo info = new FileInfo()
-                    .setLastModificationTimeMs(lazyStatus().getModificationTime())
-                    .setPath(file.toString())
+                    .setLastModificationTimeMs(lastModifiedTime)
+                    .setPath(path)
                     .setFolder(false)
-                    .setLength(lazyStatus().getLen());
-            String cacheIdentifier = md5().hashString(file.toString() + lazyStatus().getModificationTime(), UTF_8).toString();
+                    .setLength(length());
+            String cacheIdentifier = md5().hashString(path + lastModifiedTime, UTF_8).toString();
             URIStatus uriStatus = new URIStatus(info, CacheContext.defaults().setCacheIdentifier(cacheIdentifier));
             return new FSDataInputStream(new HdfsFileInputStream(
                     new LocalCacheFileInStream(uriStatus, (uri) -> new AlluxioHdfsInputStream(fileSystem.open(file)), cacheManager, alluxioConf),

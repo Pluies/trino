@@ -90,6 +90,12 @@ public class AzureFileSystem
     }
 
     @Override
+    public TrinoInputFile newInputFile(Location location, long length, long lastModifiedTime)
+    {
+        return newInputFile(location, length);
+    }
+
+    @Override
     public TrinoOutputFile newOutputFile(Location location)
     {
         AzureLocation azureLocation = new AzureLocation(location);

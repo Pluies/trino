@@ -121,6 +121,16 @@ public class TrackingFileSystemFactory
         }
 
         @Override
+        public TrinoInputFile newInputFile(Location location, long length, long lastModifiedTime)
+        {
+            int nextId = fileId.incrementAndGet();
+            return new TrackingInputFile(
+                    delegate.newInputFile(location, length, lastModifiedTime),
+                    OptionalLong.of(length),
+                    operation -> tracker.track(location, nextId, operation));
+        }
+
+        @Override
         public TrinoOutputFile newOutputFile(Location location)
         {
             int nextId = fileId.incrementAndGet();
