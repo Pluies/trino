@@ -53,6 +53,12 @@ final class TracingFileSystem
     }
 
     @Override
+    public TrinoInputFile newInputFile(Location location, long length, long lastModifiedTime)
+    {
+        return new TracingInputFile(tracer, delegate.newInputFile(location, length, lastModifiedTime), Optional.of(length));
+    }
+
+    @Override
     public TrinoOutputFile newOutputFile(Location location)
     {
         return new TracingOutputFile(tracer, delegate.newOutputFile(location));

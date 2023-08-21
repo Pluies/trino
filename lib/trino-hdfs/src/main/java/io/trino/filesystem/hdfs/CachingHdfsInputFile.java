@@ -49,7 +49,6 @@ public class CachingHdfsInputFile
     private final Path file;
     private final CacheManager cacheManager;
     private final AlluxioConfiguration alluxioConf;
-
     private final FileSystem.Statistics statistics = new FileSystem.Statistics("alluxio");
     private final HashFunction hashFunction = Hashing.murmur3_128();
 
@@ -70,12 +69,15 @@ public class CachingHdfsInputFile
     {
         FileSystem fileSystem = environment.getFileSystem(context, file);
         FSDataInputStream input = environment.doAs(context.getIdentity(), () -> {
+            String path = file.toString();
+            long lastModifiedTime = lastModified().toEpochMilli();
+
             FileInfo info = new FileInfo()
-                    .setLastModificationTimeMs(inputFile.lastModified().toEpochMilli())
-                    .setPath(file.toString())
+                    .setLastModificationTimeMs(lastModifiedTime)
+                    .setPath(path)
                     .setFolder(false)
-                    .setLength(inputFile.length());
-            String cacheIdentifier = hashFunction.hashString(file.toString() + inputFile.lastModified().toEpochMilli(), UTF_8).toString();
+                    .setLength(length());
+            String cacheIdentifier = hashFunction.hashString(path + lastModifiedTime, UTF_8).toString();
             URIStatus uriStatus = new URIStatus(info, CacheContext.defaults().setCacheIdentifier(cacheIdentifier));
             return new FSDataInputStream(new HdfsFileInputStream(
                     new LocalCacheFileInStream(uriStatus, (uri) -> new AlluxioHdfsInputStream(fileSystem.open(file)), cacheManager, alluxioConf),

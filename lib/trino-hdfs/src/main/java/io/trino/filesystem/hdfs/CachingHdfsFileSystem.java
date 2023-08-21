@@ -27,7 +27,8 @@ public class CachingHdfsFileSystem
     private final CacheManager cacheManager;
     private final AlluxioConfiguration alluxioConf;
 
-    public CachingHdfsFileSystem(HdfsEnvironment environment, HdfsContext context, TrinoHdfsFileSystemStats stats, CacheManager cacheManager, AlluxioConfiguration alluxioConf)
+    public CachingHdfsFileSystem(HdfsEnvironment environment, HdfsContext context, TrinoHdfsFileSystemStats stats,
+                                 CacheManager cacheManager, AlluxioConfiguration alluxioConf)
     {
         super(environment, context, stats);
         this.cacheManager = cacheManager;
@@ -37,14 +38,21 @@ public class CachingHdfsFileSystem
     @Override
     public TrinoInputFile newInputFile(Location location)
     {
-        HdfsInputFile hdfsInput = new HdfsInputFile(location, null, environment, context, stats.getOpenFileCalls());
+        HdfsInputFile hdfsInput = new HdfsInputFile(location, null, null, environment, context, stats.getOpenFileCalls());
         return new CachingHdfsInputFile(environment, context, hdfsInput, cacheManager, alluxioConf);
     }
 
     @Override
     public TrinoInputFile newInputFile(Location location, long length)
     {
-        HdfsInputFile hdfsInput = new HdfsInputFile(location, length, environment, context, stats.getOpenFileCalls());
+        HdfsInputFile hdfsInput = new HdfsInputFile(location, length, null, environment, context, stats.getOpenFileCalls());
+        return new CachingHdfsInputFile(environment, context, hdfsInput, cacheManager, alluxioConf);
+    }
+
+    @Override
+    public TrinoInputFile newInputFile(Location location, long length, long lastModifiedTime)
+    {
+        HdfsInputFile hdfsInput = new HdfsInputFile(location, length, lastModifiedTime, environment, context, stats.getOpenFileCalls());
         return new CachingHdfsInputFile(environment, context, hdfsInput, cacheManager, alluxioConf);
     }
 }

@@ -44,9 +44,10 @@ class HdfsInputFile
     private final Path file;
     private final CallStats openFileCallStat;
     private Long length;
+    private Long lastModifiedTime;
     private FileStatus status;
 
-    public HdfsInputFile(Location location, Long length, HdfsEnvironment environment, HdfsContext context, CallStats openFileCallStat)
+    public HdfsInputFile(Location location, Long length, Long lastModifiedTime, HdfsEnvironment environment, HdfsContext context, CallStats openFileCallStat)
     {
         this.location = requireNonNull(location, "location is null");
         this.environment = requireNonNull(environment, "environment is null");
@@ -54,6 +55,7 @@ class HdfsInputFile
         this.openFileCallStat = requireNonNull(openFileCallStat, "openFileCallStat is null");
         this.file = hadoopPath(location);
         this.length = length;
+        this.lastModifiedTime = lastModifiedTime;
         checkArgument(length == null || length >= 0, "length is negative");
         location.verifyValidFileLocation();
     }
@@ -86,7 +88,10 @@ class HdfsInputFile
     public Instant lastModified()
             throws IOException
     {
-        return Instant.ofEpochMilli(lazyStatus().getModificationTime());
+        if (lastModifiedTime == null) {
+            lastModifiedTime = lazyStatus().getModificationTime();
+        }
+        return Instant.ofEpochMilli(lastModifiedTime);
     }
 
     @Override

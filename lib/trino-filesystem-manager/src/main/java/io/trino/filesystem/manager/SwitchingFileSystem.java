@@ -66,6 +66,12 @@ final class SwitchingFileSystem
     }
 
     @Override
+    public TrinoInputFile newInputFile(Location location, long length, long lastModifiedTime)
+    {
+        return fileSystem(location).newInputFile(location, length, lastModifiedTime);
+    }
+
+    @Override
     public TrinoOutputFile newOutputFile(Location location)
     {
         return fileSystem(location).newOutputFile(location);
