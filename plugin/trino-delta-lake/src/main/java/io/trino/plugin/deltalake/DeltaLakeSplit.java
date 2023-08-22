@@ -16,7 +16,6 @@ package io.trino.plugin.deltalake;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.airlift.slice.SizeOf;
 import io.trino.spi.HostAddress;
@@ -47,6 +46,7 @@ public class DeltaLakeSplit
     private final long fileSize;
     private final Optional<Long> fileRowCount;
     private final long fileModifiedTime;
+    private final Optional<HostAddress> address;
     private final SplitWeight splitWeight;
     private final TupleDomain<DeltaLakeColumnHandle> statisticsPredicate;
     private final Map<String, Optional<String>> partitionKeys;
@@ -59,6 +59,7 @@ public class DeltaLakeSplit
             @JsonProperty("fileSize") long fileSize,
             @JsonProperty("rowCount") Optional<Long> fileRowCount,
             @JsonProperty("fileModifiedTime") long fileModifiedTime,
+            @JsonProperty("address") Optional<HostAddress> address,
             @JsonProperty("splitWeight") SplitWeight splitWeight,
             @JsonProperty("statisticsPredicate") TupleDomain<DeltaLakeColumnHandle> statisticsPredicate,
             @JsonProperty("partitionKeys") Map<String, Optional<String>> partitionKeys)
@@ -69,6 +70,7 @@ public class DeltaLakeSplit
         this.fileSize = fileSize;
         this.fileRowCount = requireNonNull(fileRowCount, "rowCount is null");
         this.fileModifiedTime = fileModifiedTime;
+        this.address = requireNonNull(address, "address is null");
         this.splitWeight = requireNonNull(splitWeight, "splitWeight is null");
         this.statisticsPredicate = requireNonNull(statisticsPredicate, "statisticsPredicate is null");
         this.partitionKeys = requireNonNull(partitionKeys, "partitionKeys is null");
@@ -84,7 +86,7 @@ public class DeltaLakeSplit
     @Override
     public List<HostAddress> getAddresses()
     {
-        return ImmutableList.of();
+        return address.stream().toList();
     }
 
     @JsonProperty
@@ -163,6 +165,7 @@ public class DeltaLakeSplit
                 .put("path", path)
                 .put("start", start)
                 .put("length", length)
+                .put("address", address)
                 .put("fileModifiedTime", fileModifiedTime)
                 .buildOrThrow();
     }
@@ -175,6 +178,7 @@ public class DeltaLakeSplit
                 .add("start", start)
                 .add("length", length)
                 .add("fileModifiedTime", fileModifiedTime)
+                .add("address", address)
                 .add("fileSize", fileSize)
                 .add("rowCount", fileRowCount)
                 .add("statisticsPredicate", statisticsPredicate)
@@ -196,6 +200,7 @@ public class DeltaLakeSplit
                 length == that.length &&
                 fileSize == that.fileSize &&
                 path.equals(that.path) &&
+                address.equals(that.address) &&
                 fileRowCount.equals(that.fileRowCount) &&
                 Objects.equals(statisticsPredicate, that.statisticsPredicate) &&
                 Objects.equals(partitionKeys, that.partitionKeys);
@@ -204,6 +209,6 @@ public class DeltaLakeSplit
     @Override
     public int hashCode()
     {
-        return Objects.hash(path, start, length, fileSize, fileRowCount, statisticsPredicate, partitionKeys);
+        return Objects.hash(path, start, length, fileSize, address, fileRowCount, statisticsPredicate, partitionKeys);
     }
 }
