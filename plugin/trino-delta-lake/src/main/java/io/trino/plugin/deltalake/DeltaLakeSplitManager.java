@@ -18,6 +18,7 @@ import com.google.inject.Inject;
 import io.airlift.units.DataSize;
 import io.trino.filesystem.Location;
 import io.trino.filesystem.TrinoFileSystemFactory;
+import io.trino.hdfs.util.NodeProvider;
 import io.trino.plugin.base.classloader.ClassLoaderSafeConnectorSplitSource;
 import io.trino.plugin.deltalake.functions.tablechanges.TableChangesSplitSource;
 import io.trino.plugin.deltalake.functions.tablechanges.TableChangesTableFunctionHandle;
@@ -81,6 +82,7 @@ public class DeltaLakeSplitManager
     private final int maxOutstandingSplits;
     private final double minimumAssignedSplitWeight;
     private final TrinoFileSystemFactory fileSystemFactory;
+    private final NodeProvider nodeProvider;
 
     @Inject
     public DeltaLakeSplitManager(
@@ -88,7 +90,8 @@ public class DeltaLakeSplitManager
             TransactionLogAccess transactionLogAccess,
             ExecutorService executor,
             DeltaLakeConfig config,
-            TrinoFileSystemFactory fileSystemFactory)
+            TrinoFileSystemFactory fileSystemFactory,
+            NodeProvider nodeProvider)
     {
         this.typeManager = requireNonNull(typeManager, "typeManager is null");
         this.transactionLogAccess = requireNonNull(transactionLogAccess, "transactionLogAccess is null");
@@ -98,6 +101,7 @@ public class DeltaLakeSplitManager
         this.maxOutstandingSplits = config.getMaxOutstandingSplits();
         this.minimumAssignedSplitWeight = config.getMinimumAssignedSplitWeight();
         this.fileSystemFactory = requireNonNull(fileSystemFactory, "fileSystemFactory is null");
+        this.nodeProvider = requireNonNull(nodeProvider, "nodeProvider is null");
     }
 
     @Override
@@ -290,6 +294,7 @@ public class DeltaLakeSplitManager
                     fileSize,
                     addFileEntry.getStats().flatMap(DeltaLakeFileStatistics::getNumRecords),
                     addFileEntry.getModificationTime(),
+                    nodeProvider.getHost(splitPath),
                     SplitWeight.standard(),
                     statisticsPredicate,
                     partitionKeys));
@@ -314,6 +319,7 @@ public class DeltaLakeSplitManager
                     fileSize,
                     Optional.empty(),
                     addFileEntry.getModificationTime(),
+                    nodeProvider.getHost(splitPath),
                     SplitWeight.fromProportion(Math.min(Math.max((double) splitSize / maxSplitSize, minimumAssignedSplitWeight), 1.0)),
                     statisticsPredicate,
                     partitionKeys));
