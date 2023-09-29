@@ -20,8 +20,10 @@ import com.google.inject.Singleton;
 import io.airlift.configuration.AbstractConfigurationAwareModule;
 import io.opentelemetry.api.trace.Tracer;
 import io.trino.filesystem.TrinoFileSystemFactory;
+import io.trino.filesystem.cache.CacheFileSystemFactory;
 import io.trino.filesystem.cache.NodeProvider;
 import io.trino.filesystem.cache.NoneNodeProvider;
+import io.trino.filesystem.cache.TrinoFileSystemCache;
 import io.trino.filesystem.hdfs.HdfsFileSystemFactory;
 import io.trino.filesystem.hdfs.HdfsFileSystemModule;
 import io.trino.filesystem.s3.S3FileSystemFactory;
@@ -61,7 +63,10 @@ public class FileSystemModule
             install(new HiveS3Module());
         }
 
-        binder.bind(NodeProvider.class).to(NoneNodeProvider.class).in(SINGLETON);
+        newMapBinder(binder, String.class, TrinoFileSystemCache.class);
+        if (config.getCacheType() == null) {
+            binder.bind(NodeProvider.class).to(NoneNodeProvider.class).in(SINGLETON);
+        }
     }
 
     @Provides
@@ -69,10 +74,19 @@ public class FileSystemModule
     public TrinoFileSystemFactory createFileSystemFactory(
             HdfsFileSystemFactoryHolder hdfsFileSystemFactory,
             Map<String, TrinoFileSystemFactory> factories,
+            Optional<TrinoFileSystemCache> fileSystemCache,
             Tracer tracer)
     {
         TrinoFileSystemFactory delegate = new SwitchingFileSystemFactory(hdfsFileSystemFactory.value(), factories);
-        return new TracingFileSystemFactory(tracer, delegate);
+        return new TracingFileSystemFactory(tracer,
+                fileSystemCache.map(cache -> (TrinoFileSystemFactory) new CacheFileSystemFactory(delegate, cache)).orElse(delegate));
+    }
+
+    @Provides
+    @Singleton
+    public Optional<TrinoFileSystemCache> createFileSystemCache(FileSystemConfig config, Map<String, TrinoFileSystemCache> caches)
+    {
+        return Optional.ofNullable(caches.get(config.getCacheType()));
     }
 
     public static class HdfsFileSystemFactoryHolder

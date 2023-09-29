@@ -19,6 +19,7 @@ public class FileSystemConfig
 {
     private boolean hadoopEnabled = true;
     private boolean nativeS3Enabled;
+    private String cacheType;
 
     public boolean isHadoopEnabled()
     {
@@ -41,6 +42,18 @@ public class FileSystemConfig
     public FileSystemConfig setNativeS3Enabled(boolean nativeS3Enabled)
     {
         this.nativeS3Enabled = nativeS3Enabled;
+        return this;
+    }
+
+    public String getCacheType()
+    {
+        return cacheType;
+    }
+
+    @Config("fs.cache")
+    public FileSystemConfig setCacheType(String cacheType)
+    {
+        this.cacheType = cacheType;
         return this;
     }
 }

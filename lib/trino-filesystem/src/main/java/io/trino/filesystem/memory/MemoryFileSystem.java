@@ -43,7 +43,7 @@ public class MemoryFileSystem
 {
     private final ConcurrentMap<String, MemoryBlob> blobs = new ConcurrentHashMap<>();
 
-    boolean isEmpty()
+    public boolean isEmpty()
     {
         return blobs.isEmpty();
     }
