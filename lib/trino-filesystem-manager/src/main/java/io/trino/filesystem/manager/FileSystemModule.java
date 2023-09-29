@@ -20,6 +20,8 @@ import com.google.inject.Singleton;
 import io.airlift.configuration.AbstractConfigurationAwareModule;
 import io.opentelemetry.api.trace.Tracer;
 import io.trino.filesystem.TrinoFileSystemFactory;
+import io.trino.filesystem.cache.NodeProvider;
+import io.trino.filesystem.cache.NoneNodeProvider;
 import io.trino.filesystem.hdfs.HdfsFileSystemFactory;
 import io.trino.filesystem.hdfs.HdfsFileSystemModule;
 import io.trino.filesystem.s3.S3FileSystemFactory;
@@ -58,6 +60,8 @@ public class FileSystemModule
         else {
             install(new HiveS3Module());
         }
+
+        binder.bind(NodeProvider.class).to(NoneNodeProvider.class).in(SINGLETON);
     }
 
     @Provides
