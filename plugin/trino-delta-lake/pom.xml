@@ -131,6 +131,18 @@
 
         <dependency>
             <groupId>io.trino</groupId>
+            <artifactId>trino-filesystem-alluxio</artifactId>
+            <exclusions>
+                <!-- Provided through com.qubole.rubix.rubix-presto-shaded dependency of trino-hdfs -->
+                <exclusion>
+                    <groupId>com.github.ishugaliy</groupId>
+                    <artifactId>allgood-consistent-hash</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>io.trino</groupId>
             <artifactId>trino-filesystem-manager</artifactId>
         </dependency>
 
@@ -172,6 +184,11 @@
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.alluxio</groupId>
+            <artifactId>alluxio-shaded-client</artifactId>
         </dependency>
 
         <dependency>
@@ -301,6 +318,12 @@
 
         <dependency>
             <groupId>io.trino</groupId>
+            <artifactId>trino-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.trino</groupId>
             <artifactId>trino-exchange-filesystem</artifactId>
             <scope>test</scope>
         </dependency>
@@ -317,6 +340,20 @@
             <artifactId>trino-filesystem</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.trino</groupId>
+            <artifactId>trino-filesystem-alluxio</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+            <exclusions>
+                <!-- Provided through com.qubole.rubix.rubix-presto-shaded dependency of trino-hdfs -->
+                <exclusion>
+                    <groupId>com.github.ishugaliy</groupId>
+                    <artifactId>allgood-consistent-hash</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -484,6 +521,7 @@
                              aws-java-sdk-core -->
                         <ignoredDependency>com.amazonaws:aws-java-sdk-core</ignoredDependency>
                         <ignoredDependency>org.apache.iceberg:iceberg-api</ignoredDependency>
+                        <ignoredDependency>org.alluxio:alluxio-shaded-client</ignoredDependency>
                     </ignoredNonTestScopedDependencies>
                 </configuration>
             </plugin>

@@ -21,9 +21,11 @@ import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import io.airlift.configuration.AbstractConfigurationAwareModule;
+import io.trino.filesystem.manager.FileSystemConfig;
 import io.trino.plugin.base.CatalogName;
 import io.trino.plugin.base.security.ConnectorAccessControlModule;
 import io.trino.plugin.base.session.SessionPropertiesProvider;
+import io.trino.plugin.deltalake.cache.DeltaLakeAlluxioFileSystemCacheModule;
 import io.trino.plugin.deltalake.functions.tablechanges.TableChangesFunctionProvider;
 import io.trino.plugin.deltalake.functions.tablechanges.TableChangesProcessorProvider;
 import io.trino.plugin.deltalake.procedure.DropExtendedStatsProcedure;
@@ -70,6 +72,7 @@ import static com.google.inject.multibindings.MapBinder.newMapBinder;
 import static com.google.inject.multibindings.Multibinder.newSetBinder;
 import static com.google.inject.multibindings.OptionalBinder.newOptionalBinder;
 import static io.airlift.concurrent.Threads.daemonThreadsNamed;
+import static io.airlift.configuration.ConditionalModule.conditionalModule;
 import static io.airlift.configuration.ConfigBinder.configBinder;
 import static io.airlift.json.JsonCodecBinder.jsonCodecBinder;
 import static io.trino.plugin.deltalake.DeltaLakeAccessControlMetadataFactory.SYSTEM;
@@ -148,6 +151,11 @@ public class DeltaLakeModule
         newSetBinder(binder, ConnectorTableFunction.class).addBinding().toProvider(TableChangesFunctionProvider.class).in(Scopes.SINGLETON);
         binder.bind(FunctionProvider.class).to(DeltaLakeFunctionProvider.class).in(Scopes.SINGLETON);
         binder.bind(TableChangesProcessorProvider.class).in(Scopes.SINGLETON);
+
+        install(conditionalModule(
+                FileSystemConfig.class,
+                cache -> "alluxio-delta".equalsIgnoreCase(cache.getCacheType()),
+                new DeltaLakeAlluxioFileSystemCacheModule()));
     }
 
     @Singleton
