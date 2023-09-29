@@ -25,6 +25,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import io.airlift.configuration.AbstractConfigurationAwareModule;
+import io.trino.filesystem.cache.NodeProvider;
 import io.trino.filesystem.cache.TrinoFileSystemCache;
 
 import java.io.IOException;
@@ -43,6 +44,7 @@ public class AlluxioFileSystemCacheModule
         configBinder(binder).bindConfig(AlluxioFileSystemCacheConfig.class);
 
         newMapBinder(binder, String.class, TrinoFileSystemCache.class).addBinding("alluxio").to(AlluxioFileSystemCache.class).in(SINGLETON);
+        binder.bind(NodeProvider.class).to(ConsistentHashingNodeProvider.class).in(SINGLETON);
 
         Properties metricProps = new Properties();
         metricProps.put("sink.jmx.class", "alluxio.metrics.sink.JmxSink");

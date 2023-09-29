@@ -45,6 +45,13 @@
         <dependency>
             <groupId>io.trino</groupId>
             <artifactId>trino-filesystem-alluxio</artifactId>
+            <exclusions>
+                <!-- Provided through com.qubole.rubix.rubix-presto-shaded dependency of trino-hdfs -->
+                <exclusion>
+                    <groupId>com.github.ishugaliy</groupId>
+                    <artifactId>allgood-consistent-hash</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
