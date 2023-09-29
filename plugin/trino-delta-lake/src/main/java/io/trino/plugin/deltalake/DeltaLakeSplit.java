@@ -49,6 +49,7 @@ public class DeltaLakeSplit
     private final Optional<Long> fileRowCount;
     private final long fileModifiedTime;
     private final Optional<DeletionVectorEntry> deletionVector;
+    private final List<HostAddress> addresses;
     private final SplitWeight splitWeight;
     private final TupleDomain<DeltaLakeColumnHandle> statisticsPredicate;
     private final Map<String, Optional<String>> partitionKeys;
@@ -66,6 +67,33 @@ public class DeltaLakeSplit
             @JsonProperty("statisticsPredicate") TupleDomain<DeltaLakeColumnHandle> statisticsPredicate,
             @JsonProperty("partitionKeys") Map<String, Optional<String>> partitionKeys)
     {
+        this(
+                path,
+                start,
+                length,
+                fileSize,
+                fileRowCount,
+                fileModifiedTime,
+                deletionVector,
+                ImmutableList.of(),
+                splitWeight,
+                statisticsPredicate,
+                partitionKeys);
+    }
+
+    public DeltaLakeSplit(
+            String path,
+            long start,
+            long length,
+            long fileSize,
+            Optional<Long> fileRowCount,
+            long fileModifiedTime,
+            Optional<DeletionVectorEntry> deletionVector,
+            List<HostAddress> addresses,
+            SplitWeight splitWeight,
+            TupleDomain<DeltaLakeColumnHandle> statisticsPredicate,
+            Map<String, Optional<String>> partitionKeys)
+    {
         this.path = requireNonNull(path, "path is null");
         this.start = start;
         this.length = length;
@@ -73,6 +101,7 @@ public class DeltaLakeSplit
         this.fileRowCount = requireNonNull(fileRowCount, "rowCount is null");
         this.fileModifiedTime = fileModifiedTime;
         this.deletionVector = requireNonNull(deletionVector, "deletionVector is null");
+        this.addresses = requireNonNull(addresses, "addresses is null");
         this.splitWeight = requireNonNull(splitWeight, "splitWeight is null");
         this.statisticsPredicate = requireNonNull(statisticsPredicate, "statisticsPredicate is null");
         this.partitionKeys = requireNonNull(partitionKeys, "partitionKeys is null");
@@ -85,10 +114,11 @@ public class DeltaLakeSplit
     }
 
     @JsonIgnore
+    // do not serialize addresses as they are not needed on workers
     @Override
     public List<HostAddress> getAddresses()
     {
-        return ImmutableList.of();
+        return addresses;
     }
 
     @JsonProperty
@@ -174,6 +204,7 @@ public class DeltaLakeSplit
                 .put("path", path)
                 .put("start", start)
                 .put("length", length)
+                .put("addresses", addresses)
                 .buildOrThrow();
     }
 
@@ -187,6 +218,7 @@ public class DeltaLakeSplit
                 .add("fileSize", fileSize)
                 .add("rowCount", fileRowCount)
                 .add("deletionVector", deletionVector)
+                .add("addresses", addresses)
                 .add("statisticsPredicate", statisticsPredicate)
                 .add("partitionKeys", partitionKeys)
                 .toString();
@@ -208,6 +240,7 @@ public class DeltaLakeSplit
                 path.equals(that.path) &&
                 fileRowCount.equals(that.fileRowCount) &&
                 deletionVector.equals(that.deletionVector) &&
+                Objects.equals(addresses, that.addresses) &&
                 Objects.equals(statisticsPredicate, that.statisticsPredicate) &&
                 Objects.equals(partitionKeys, that.partitionKeys);
     }
@@ -215,6 +248,6 @@ public class DeltaLakeSplit
     @Override
     public int hashCode()
     {
-        return Objects.hash(path, start, length, fileSize, fileRowCount, deletionVector, statisticsPredicate, partitionKeys);
+        return Objects.hash(path, start, length, fileSize, fileRowCount, deletionVector, addresses, statisticsPredicate, partitionKeys);
     }
 }

@@ -47,6 +47,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import static io.trino.filesystem.cache.NoneNodeProvider.NONE_NODE_PROVIDER;
 import static io.trino.plugin.hive.HiveTestUtils.HDFS_ENVIRONMENT;
 import static io.trino.plugin.hive.HiveTestUtils.HDFS_FILE_SYSTEM_FACTORY;
 import static io.trino.plugin.hive.HiveTestUtils.HDFS_FILE_SYSTEM_STATS;
@@ -187,7 +188,8 @@ public class TestDeltaLakeSplitManager
                 },
                 MoreExecutors.newDirectExecutorService(),
                 deltaLakeConfig,
-                HDFS_FILE_SYSTEM_FACTORY);
+                HDFS_FILE_SYSTEM_FACTORY,
+                NONE_NODE_PROVIDER);
     }
 
     private AddFileEntry addFileEntryOfSize(long fileSize)

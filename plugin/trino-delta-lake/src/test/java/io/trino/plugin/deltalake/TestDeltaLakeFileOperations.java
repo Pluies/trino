@@ -19,6 +19,8 @@ import com.google.common.collect.Multiset;
 import io.trino.Session;
 import io.trino.filesystem.TrackingFileSystemFactory;
 import io.trino.filesystem.TrackingFileSystemFactory.OperationType;
+import io.trino.filesystem.cache.NodeProvider;
+import io.trino.filesystem.cache.NoneNodeProvider;
 import io.trino.filesystem.hdfs.HdfsFileSystemFactory;
 import io.trino.testing.AbstractTestQueryFramework;
 import io.trino.testing.DistributedQueryRunner;
@@ -35,7 +37,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.google.inject.util.Modules.EMPTY_MODULE;
+import static com.google.inject.Scopes.SINGLETON;
 import static io.trino.filesystem.TrackingFileSystemFactory.OperationType.INPUT_FILE_EXISTS;
 import static io.trino.filesystem.TrackingFileSystemFactory.OperationType.INPUT_FILE_GET_LENGTH;
 import static io.trino.filesystem.TrackingFileSystemFactory.OperationType.INPUT_FILE_NEW_STREAM;
@@ -83,7 +85,7 @@ public class TestDeltaLakeFileOperations
             String metastoreDirectory = queryRunner.getCoordinator().getBaseDataDir().resolve("delta_lake_metastore").toFile().getAbsoluteFile().toURI().toString();
             trackingFileSystemFactory = new TrackingFileSystemFactory(new HdfsFileSystemFactory(HDFS_ENVIRONMENT, HDFS_FILE_SYSTEM_STATS));
 
-            queryRunner.installPlugin(new TestingDeltaLakePlugin(Optional.empty(), Optional.of(trackingFileSystemFactory), EMPTY_MODULE));
+            queryRunner.installPlugin(new TestingDeltaLakePlugin(Optional.empty(), Optional.of(trackingFileSystemFactory), binder -> binder.bind(NodeProvider.class).to(NoneNodeProvider.class).in(SINGLETON)));
             queryRunner.createCatalog(
                     "delta_lake",
                     "delta_lake",

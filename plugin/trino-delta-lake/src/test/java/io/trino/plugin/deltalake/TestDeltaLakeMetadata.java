@@ -23,6 +23,8 @@ import com.google.inject.Scopes;
 import io.airlift.bootstrap.Bootstrap;
 import io.airlift.json.JsonModule;
 import io.trino.filesystem.TrinoFileSystemFactory;
+import io.trino.filesystem.cache.NodeProvider;
+import io.trino.filesystem.cache.NoneNodeProvider;
 import io.trino.filesystem.hdfs.HdfsFileSystemFactory;
 import io.trino.hdfs.HdfsEnvironment;
 import io.trino.hdfs.TrinoHdfsFileSystemStats;
@@ -233,6 +235,7 @@ public class TestDeltaLakeMetadata
                     binder.bind(HdfsEnvironment.class).toInstance(HDFS_ENVIRONMENT);
                     binder.bind(TrinoHdfsFileSystemStats.class).toInstance(HDFS_FILE_SYSTEM_STATS);
                     binder.bind(TrinoFileSystemFactory.class).to(HdfsFileSystemFactory.class).in(Scopes.SINGLETON);
+                    binder.bind(NodeProvider.class).to(NoneNodeProvider.class).in(Scopes.SINGLETON);
                 },
                 new AbstractModule()
                 {
