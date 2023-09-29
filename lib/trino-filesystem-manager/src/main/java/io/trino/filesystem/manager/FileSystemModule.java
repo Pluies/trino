@@ -20,6 +20,7 @@ import com.google.inject.Singleton;
 import io.airlift.configuration.AbstractConfigurationAwareModule;
 import io.opentelemetry.api.trace.Tracer;
 import io.trino.filesystem.TrinoFileSystemFactory;
+import io.trino.filesystem.alluxio.AlluxioFileSystemCacheModule;
 import io.trino.filesystem.cache.CacheFileSystemFactory;
 import io.trino.filesystem.cache.NodeProvider;
 import io.trino.filesystem.cache.NoneNodeProvider;
@@ -36,6 +37,7 @@ import java.util.Optional;
 
 import static com.google.inject.Scopes.SINGLETON;
 import static com.google.inject.multibindings.MapBinder.newMapBinder;
+import static io.airlift.configuration.ConditionalModule.conditionalModule;
 
 public class FileSystemModule
         extends AbstractConfigurationAwareModule
@@ -64,7 +66,13 @@ public class FileSystemModule
         }
 
         newMapBinder(binder, String.class, TrinoFileSystemCache.class);
-        if (config.getCacheType() == null) {
+        if (config.getCacheType() != null) {
+            install(conditionalModule(
+                    FileSystemConfig.class,
+                    cache -> "alluxio".equalsIgnoreCase(cache.getCacheType()),
+                    new AlluxioFileSystemCacheModule()));
+        }
+        else {
             binder.bind(NodeProvider.class).to(NoneNodeProvider.class).in(SINGLETON);
         }
     }
